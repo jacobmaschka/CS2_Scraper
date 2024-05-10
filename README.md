@@ -1,7 +1,9 @@
 # CS2 Scraper
 ## Dependencies
-Node.js - install here https://nodejs.org/en/download
-Playwright - pip install pytest-playwright, and then `npm playwright install`
+Node.js - https://nodejs.org/en/download<br>
+Playwright - `pip install pytest-playwright`, and then `playwright install`
+BeautifulSoup - `pip install beautifulsoup4`
+
 ## Getting Started
 
 ## Languages/Technologies
