@@ -1,35 +1,29 @@
 from playwright.sync_api import sync_playwright
-from playwright_stealth import stealth_sync
 from bs4 import BeautifulSoup
 import re
 
 def main():
     allPlayerStats = {}
-    #mapLinks = ['https://www.hltv.org/stats/matches/mapstatsid/175043/natus-vincere-vs-faze', 'https://www.hltv.org/stats/matches/mapstatsid/175050/faze-vs-natus-vincere']
-    matchLinks = ['https://www.hltv.org/matches/2370722/spirit-vs-faze-pgl-cs2-major-copenhagen-2024',
-                  'https://www.hltv.org/matches/2370650/spirit-vs-natus-vincere-pgl-cs2-major-copenhagen-2024']
+    teamMatchPage = 'https://www.hltv.org/team/7020/spirit#tab-matchesBox'
+    matchLinks = getMatchLinks(teamMatchPage)
 
-    # teamMatchPage = 'https://www.hltv.org/team/7020/spirit#tab-matchesBox'
-    # matchLinks = getMatchLinks(teamMatchPage)
     for link in matchLinks:
         mapLinks = getMapLinks(link)
         for link in mapLinks:
             playerStats = getPlayerStats(link)
-            # Update the allPlayerStats dictionary with the playerStats from the current match
+            # Update the allPlayerStats dictionary with the playerStats from the current map
             for player, stats in playerStats.items():
                 if player in allPlayerStats:
                     allPlayerStats[player].extend(stats)
                 else:
                     allPlayerStats[player] = stats
     
-    # Now you can print allPlayerStats dictionary outside the loop
+    # Now print all players stats
     for player, stats in allPlayerStats.items():
         print(f"{player}: {stats}")      
             
 
-
 def getPlayerStats(mapPage):
-    hardcodedTeam = 'Spirit'
     with sync_playwright() as p:
         # Launch playwright in chrome, open a new page, and go to the passed in link
         browser = p.chromium.launch(headless=False)
@@ -55,6 +49,9 @@ def getPlayerStats(mapPage):
         stats_content_divs = soup.find_all('div', class_='stats-content')
 
         playerStats = {}
+
+        # Need to pull this earlier and pass it into this function, used in the next loop
+        hardcodedTeam = 'Spirit'
 
         # Iterate over the divs and extract player stats
         for stats_content in stats_content_divs:
@@ -130,7 +127,7 @@ def getMapLinks(matchPage):
 def getMatchLinks(teamMatchPage):
     with sync_playwright() as p:
         # Launch playwright in chrome, open a new page, and go to the passed in link
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=False, slow_mo=1000)
         page = browser.new_page()
         #stealth_sync(page)
         page.set_viewport_size({"width": 1920, "height": 1080})
@@ -149,9 +146,13 @@ def getMatchLinks(teamMatchPage):
         page.click('#matchesBox > a')
 
         # Wait to make sure its loaded, then click to filter for last 3 months
-        page.wait_for_selector('body > div.bgPadding > div.widthControl > div:nth-child(2) > div.leftCol > div > div > div > div.sidebar-first-level > div > div > div:nth-child(4) > div > a:nth-child(3)')
-        page.click('body > div.bgPadding > div.widthControl > div:nth-child(2) > div.leftCol > div > div > div > div.sidebar-first-level > div > div > div:nth-child(4) > div > a:nth-child(3)')
-
+        # page.wait_for_selector('body > div.bgPadding > div.widthControl > div:nth-child(2) > div.leftCol > div > div > div > div.sidebar-first-level > div > div > div:nth-child(4) > div > a:nth-child(3)')
+        # page.click('body > div.bgPadding > div.widthControl > div:nth-child(2) > div.leftCol > div > div > div > div.sidebar-first-level > div > div > div:nth-child(4) > div > a:nth-child(3)')
+        
+        # Use last month for now to make testing easier
+        page.wait_for_selector('body > div.bgPadding > div.widthControl > div:nth-child(2) > div.leftCol > div.results > div > div > div.sidebar-first-level > div > div > div:nth-child(4) > div > a:nth-child(2)')
+        page.click('body > div.bgPadding > div.widthControl > div:nth-child(2) > div.leftCol > div.results > div > div > div.sidebar-first-level > div > div > div:nth-child(4) > div > a:nth-child(2)')
+        
         # Wait to make sure its loaded, then get the HTML content for the results-all div
         page.wait_for_selector('body > div.bgPadding > div.widthControl > div:nth-child(2) > div.contentCol > div.results > div.results-holder.allres > div.results-all')
         resultsHtml = page.inner_html('body > div.bgPadding > div.widthControl > div:nth-child(2) > div.contentCol > div.results > div.results-holder.allres > div.results-all')
