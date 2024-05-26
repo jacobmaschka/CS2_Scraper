@@ -1,4 +1,4 @@
-# CS2 Scraper (IP)
+# CS2 Scraper (In Progress)
 ## Overview
 - Given a teams HLTV.org match page link, this scraper will fetch all of their individual match links within the past 3 months (for now its set to 1 month to make testing easier). Using those match links, it then finds all map links, and then the players stats. 
 ## Getting Started
